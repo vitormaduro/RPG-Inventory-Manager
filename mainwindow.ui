@@ -63,7 +63,7 @@
      </widget>
     </item>
     <item row="9" column="4">
-     <widget class="QPushButton" name="pushButton_4">
+     <widget class="QPushButton" name="btn_removeX">
       <property name="text">
        <string>Remove X</string>
       </property>
@@ -104,14 +104,14 @@
      </widget>
     </item>
     <item row="9" column="2">
-     <widget class="QPushButton" name="pushButton_5">
+     <widget class="QPushButton" name="btn_removeOne">
       <property name="text">
        <string>Remove 1</string>
       </property>
      </widget>
     </item>
     <item row="9" column="3">
-     <widget class="QPushButton" name="pushButton_6">
+     <widget class="QPushButton" name="btn_addX">
       <property name="text">
        <string>Add X</string>
       </property>

@@ -3,6 +3,7 @@
 #include "createitemdialog.h"
 #include "createcharacterdialog.h"
 #include "QMessageBox"
+#include "QInputDialog"
 #include "QSqlDatabase"
 #include "QSqlDriver"
 #include "QSqlError"
@@ -199,7 +200,7 @@ void MainWindow::updateInventoryWindow() {
     // Atualiza a tabela com todos os itens do personagem
     currentChar = ui->cb_characterNames->currentText();
     QSqlQueryModel *model = new QSqlQueryModel;
-    query.prepare("SELECT Items.name, Items. weight, Inventory.quantity, Items.description FROM Items, Characters, Inventory WHERE charID = Characters.id AND itemID = Items.id AND Characters.name = ?");
+    query.prepare("SELECT Items.name, Items.weight, Inventory.quantity, Items.description FROM Items, Characters, Inventory WHERE charID = Characters.id AND itemID = Items.id AND Characters.name = ?");
     query.addBindValue(currentChar);
     query.exec();
     model->setQuery(query);
@@ -258,6 +259,110 @@ void MainWindow::on_cb_characterNames_currentIndexChanged(int index) {
     updateInventoryWindow();
 }
 
+/*
+    Adiciona 1 unidade do item selecionado (botão Add 1 da tela principal)
+*/
 void MainWindow::on_pushButton_3_clicked() {
-    //QMessageBox::about(this, "Result", QString::number());
+    int row;
+    QString itemName;
+    QString currentChar;
+
+    // Encontra o nome do item atualmente selecionado
+    row = ui->tv_Inventory->selectionModel()->selectedRows().at(0).row();
+    itemName = ui->tv_Inventory->model()->index(row, 0).data().toString();
+
+    // Encontra o nome do personagem atualmente selecionado
+    currentChar = ui->cb_characterNames->currentText();
+
+    // Adiciona 1 unidade do item do inventário do personagem
+    addOrRemoveItems(itemName, currentChar, 1);
+}
+
+/*
+    Remove 1 unidade do item selecionado (botão Remove 1 da tela principal)
+*/
+void MainWindow::on_btn_removeOne_clicked()
+{
+    int row;
+    QString itemName;
+    QString currentChar;
+
+    // Encontra o nome do item atualmente selecionado
+    row = ui->tv_Inventory->selectionModel()->selectedRows().at(0).row();
+    itemName = ui->tv_Inventory->model()->index(row, 0).data().toString();
+
+    // Encontra o nome do personagem atualmente selecionado
+    currentChar = ui->cb_characterNames->currentText();
+
+    // Remove 1 unidade do item do inventário do personagem
+    addOrRemoveItems(itemName, currentChar, -1);
+}
+
+void MainWindow::on_btn_addX_clicked()
+{
+    bool ok;
+    int i;
+    int row;
+    QString itemName;
+    QString currentChar;
+    QSqlQuery query;
+
+    // Encontra o nome do item atualmente selecionado
+    row = ui->tv_Inventory->selectionModel()->selectedRows().at(0).row();
+    itemName = ui->tv_Inventory->model()->index(row, 0).data().toString();
+
+    // Encontra o nome do personagem atualmente selecionado
+    currentChar = ui->cb_characterNames->currentText();
+
+    // Pergunta ao usuário a quantidade a ser adiciona
+    i = QInputDialog::getInt(this, "Add Multiple", "Enter quantity of '" + itemName + "' to add", 0, 0, 2147483647, 1, &ok);
+
+    // Adiciona i unidades do item ao inventário do personagem
+    if(ok) {
+        addOrRemoveItems(itemName, currentChar, i);
+    }
+}
+
+/*
+    Adiciona ou remove items do inventário de um personagem
+    Entrada: itemName (nome do item a ser alterado), charName (nome do personagem dono do inventário), quantity (valor a ser somado ou subtraído da quantidade de itens)
+    Retorno: true, caso a alteração tenha sucesso. Caso contrário, retorna false
+*/
+bool MainWindow::addOrRemoveItems(QString itemName, QString charName, int quantity) {
+    bool error = false;
+    int itemID;
+    int charID;
+    QSqlQuery query;
+
+    // Encontra o id do personagem selecionado na tabela Characters
+    query.prepare("SELECT id FROM Characters WHERE name = ?");
+    query.addBindValue(charName);
+    query.exec();
+    query.first();
+    charID = query.value(0).toInt();
+    if(query.lastError().text() != "")
+        error = true;
+
+    // Encontra o id do item na tabela Items
+    query.prepare("SELECT id FROM Items WHERE name = ?");
+    query.addBindValue(itemName);
+    query.exec();
+    query.first();
+    itemID = query.value(0).toInt();
+    if(query.lastError().text() != "")
+        error = true;
+
+    //Atualiza a tabela Inventory com a nova quantidade (quantidade antiga + quantity)
+    query.prepare("UPDATE Inventory SET quantity = quantity + ? WHERE itemID = ? AND charID = ?");
+    query.addBindValue(quantity);
+    query.addBindValue(itemID);
+    query.addBindValue(charID);
+    query.exec();
+    if(query.lastError().text() != "")
+        error = true;
+
+    if(!error)
+        return true;
+    else
+        return false;
 }

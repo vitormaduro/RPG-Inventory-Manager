@@ -23,6 +23,7 @@ private:
     Ui::MainWindow *ui;
     float currentWeight;
     float maxWeight;
+    bool addOrRemoveItems(QString itemName, QString charName, int quantity);
 
 private slots:
     void MenuAboutQtPressed();
@@ -30,5 +31,7 @@ private slots:
     void on_actionAdd_Character_triggered();
     void on_cb_characterNames_currentIndexChanged(int index);
     void on_pushButton_3_clicked();
+    void on_btn_removeOne_clicked();
+    void on_btn_addX_clicked();
 };
 #endif // MAINWINDOW_H
